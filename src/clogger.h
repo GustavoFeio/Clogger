@@ -1,5 +1,29 @@
 
 /*
+ * MIT License
+ * 
+ * Copyright (c) 2025 Gustavo Feio
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+/*
  * This is a header-only logging library for C.
  * To use in your program simply define the `CLOG_IMPLEMENTATION` macro and include the file as so:
  * ```c
@@ -35,7 +59,6 @@
 // TODO:
 // - add default colors (escape sequences) to make it easier to redefine them
 // - add support for also suppressing elements for specific levels, instead of all of them at once
-// - add support for coloring the message itself, instead of just the info preceding it
 
 #ifndef _CLOG_H_
 #define _CLOG_H_
@@ -45,9 +68,6 @@ typedef enum {
 	CLOG_DEBUG,
 	CLOG_WARN,
 	CLOG_ERROR,
-
-	// always last
-	CLOG_MAX,
 } Clog_Level;
 
 #ifndef CLOG_CUSTOM_LOG_ORDER
@@ -61,7 +81,6 @@ typedef enum {
 #	else
 #		error Cannot redefine CLOG_LOC_IDX. Enable CLOG_CUSTOM_LOG_ORDER if you want to change the order.
 #	endif // CLOG_LOC_IDX
-#	endif
 #	ifndef CLOG_TAG_IDX
 #		define CLOG_TAG_IDX  2
 #	else
