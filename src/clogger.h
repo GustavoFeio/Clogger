@@ -26,6 +26,8 @@
  * - CLOG_*_COLOR: you can define your own preferred colors for each log level using ansi escape codes (https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797); simply #define your desired escape sequence with the corresponding name before including this file. Does nothing if the CLOG_SUPPRESS_COLOR macro is defined.
  * - CLOG_*_TAG: you can define your own preferred tag for each log level; simply #define your desired tag with the corresponding name before including this file. Does nothing if the CLOG_SUPPRESS_TAG macro is defined.
  * - CLOG_*_OUT: you can define your own preferred output file for each log level; simply #define your desired output with the corresponding name before including this file.
+ * - CLOG_CUSTOM_LOG_ORDER: you can define your own order for the timestamp, type, and location of the logs by defining this macro and defining each of the CLOG_*_IDX individually; they must all be defined and be distinct, starting from 0 and incrementing by one unit (whatever undefined behavior you get from not following these rules is not my fault :D ).
+ * - CLOG_ENABLE_MESSAGE_COLOR: colors the whole log, including the message itself.
  *
  * [*]: This library is still in development; I do not claim to have the best or most extensive customizability, I simply implement what I need as I need it.
  */
@@ -47,6 +49,25 @@ typedef enum {
 	// always last
 	CLOG_MAX,
 } Clog_Level;
+
+#ifndef CLOG_CUSTOM_LOG_ORDER
+#	ifndef CLOG_TIME_IDX
+#		define CLOG_TIME_IDX 0
+#	else
+#		error Cannot redefine CLOG_TIME_IDX. Enable CLOG_CUSTOM_LOG_ORDER if you want to change the order.
+#	endif // CLOG_TIME_IDX
+#	ifndef CLOG_LOC_IDX
+#		define CLOG_LOC_IDX  1
+#	else
+#		error Cannot redefine CLOG_LOC_IDX. Enable CLOG_CUSTOM_LOG_ORDER if you want to change the order.
+#	endif // CLOG_LOC_IDX
+#	endif
+#	ifndef CLOG_TAG_IDX
+#		define CLOG_TAG_IDX  2
+#	else
+#		error Cannot redefine CLOG_TAG_IDX. Enable CLOG_CUSTOM_LOG_ORDER if you want to change the order.
+#	endif // CLOG_TAG_IDX
+#endif
 
 #ifndef CLOG_SUPPRESS_COLOR
 #	ifndef CLOG_INFO_COLOR
@@ -140,41 +161,94 @@ inline static FILE *__clog_get_output(Clog_Level level)
 	}
 }
 
-void __clog_generic(Clog_Level level, const char *path, int line, const char *fmt, ...)
+inline static void __log_time(FILE *out, Clog_Level level, const char *path, int line)
 {
-	FILE *out = __clog_get_output(level);
-#ifndef CLOG_SUPPRESS_COLOR
-	fprintf(out, "%s", clog_colors[level]);
-#endif // CLOG_SUPPRESS_COLOR
+	UNUSED(level);
+	UNUSED(path);
+	UNUSED(line);
 #ifndef CLOG_SUPPRESS_TIME
 	time_t tloc;
 	time(&tloc);
 	struct tm *timeinfo = NULL;
 	timeinfo = localtime(&tloc); // not thread safe
 	fprintf(out, "[%02d:%02d:%02d] ", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+#else
+	UNUSED(out);
 #endif // CLOG_SUPPRESS_TIME
+}
 
+inline static void __log_location(FILE *out, Clog_Level level, const char *path, int line)
+{
+	UNUSED(level);
 #ifndef CLOG_SUPPRESS_LOC
 	fprintf(out, "%s:%d: ", path, line);
 #else
 	UNUSED(path);
 	UNUSED(line);
 #endif // CLOG_SUPPRESS_LOC
+}
 
+inline static void __log_tag(FILE *out, Clog_Level level, const char *path, int line)
+{
+	UNUSED(path);
+	UNUSED(line);
 #ifndef CLOG_SUPPRESS_TAG
 	// TODO: consider padding the tags
 		// hardcoded 19 means that if the tags change this may not be formatted correctly
 		// fprintf(out, "%-19s", type);
 	fprintf(out, "%s: ", clog_tags[level]);
+#else
+	UNUSED(out);
+	UNUSED(level);
 #endif // CLOG_SUPPRESS_TAG
+}
+
+typedef void (*__log_func)(FILE *out, Clog_Level level, const char *path, int line);
+static __log_func __log_funcs[] = {
+	[CLOG_TIME_IDX] = &__log_time,
+	[CLOG_LOC_IDX]  = &__log_location,
+	[CLOG_TAG_IDX]  = &__log_tag,
+};
+
+void __clog_generic(Clog_Level level, const char *path, int line, const char *fmt, ...)
+{
+#ifdef CLOG_CUSTOM_LOG_ORDER
+#	if !defined CLOG_TIME_IDX
+#		error `CLOG_TIME_IDX` was not defined.
+#	elif !defined CLOG_TAG_IDX
+#		error `CLOG_TAG_IDX` was not defined.
+#	elif !defined CLOG_LOC_IDX
+#		error `CLOG_LOC_IDX` was not defined.
+#	elif CLOG_TIME_IDX == CLOG_LOC_IDX || CLOG_TIME_IDX == CLOG_TAG_IDX || CLOG_LOC_IDX == CLOG_TAG_IDX // not ideal if more macros are added
+#		error All `CLOG_TIME_IDX`, `CLOG_LOC_IDX`, and `CLOG_TAG_IDX` indices must be distinct.
+#	endif
+#endif // CLOG_CUSTOM_LOG_ORDER
+
+	FILE *out = __clog_get_output(level);
 
 #ifndef CLOG_SUPPRESS_COLOR
+	fprintf(out, "%s", clog_colors[level]);
+#elif defined CLOG_ENABLE_MESSAGE_COLOR
+#	error Both `CLOG_SUPPRESS_COLOR` and `CLOG_ENABLE_MESSAGE_COLOR` are defined. // Can't be bothered dealing with the consequences, so just throw an error
+#endif // CLOG_SUPPRESS_COLOR
+
+	for (size_t i = 0; i < sizeof(__log_funcs)/sizeof(__log_funcs[0]); i++) {
+		__log_funcs[i](out, level, path, line);
+	}
+
+#if !defined CLOG_SUPPRESS_COLOR && !defined CLOG_ENABLE_MESSAGE_COLOR
 	fprintf(out, "\x1b[0m");
 #endif // CLOG_SUPPRESS_COLOR
+
 	va_list va;
 	va_start(va, fmt);
 	vfprintf(out, fmt, va);
 	va_end(va);
+
+#ifdef CLOG_ENABLE_MESSAGE_COLOR
+	fprintf(out, "\x1b[0m");
+#endif // CLOG_ENABLE_MESSAGE_COLOR
+
 #ifndef CLOG_SUPPRESS_NEWLINE
 	fprintf(out, "\n");
 #endif // CLOG_SUPPRESS_NEWLINE
