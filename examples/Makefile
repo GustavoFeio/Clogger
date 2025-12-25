@@ -1,7 +1,7 @@
 
 CC = cc
 
-CLOG = ../src
+CLOG = ../lib
 OUT = ./out
 
 FLAGS = -Wall -Wextra

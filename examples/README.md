@@ -4,11 +4,8 @@ Run
 ```bash
 make
 ```
-To compile all programs, or run
-```bash
-make example_name
-```
-to compile `example_name`.
+To compile all programs.
+
 
 Use
 ```bash
