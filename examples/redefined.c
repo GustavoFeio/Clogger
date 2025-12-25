@@ -5,10 +5,7 @@
 #define CLOG_INFO_OUT stdout
 #define CLOG_DEBUG_OUT stdout
 
-#define CLOG_CUSTOM_LOG_ORDER
-#define CLOG_LOC_IDX  0
-#define CLOG_TAG_IDX  1
-#define CLOG_TIME_IDX 2
+#define CLOG_LOG_ORDER {CLOG_LOC, CLOG_TAG, CLOG_TIME}
 
 #define CLOG_ENABLE_MESSAGE_COLOR
 

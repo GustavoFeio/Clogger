@@ -1,6 +1,11 @@
 
 #define CLOG_IMPLEMENTATION
+
+// One can either define their custom log order through `CLOG_LOG_ORDER`
+// and ommit whatever is not needed, or use a `SUPPRESS` macro.
 #define CLOG_SUPPRESS_TIME
+// #define CLOG_LOG_ORDER {CLOG_LOC, CLOG_TAG}
+
 #define CLOG_SUPPRESS_NEWLINE
 #include "clogger.h"
 
@@ -18,5 +23,4 @@ int main(void)
 	clog_info("If you prefer the explicit '\\n' à la printf you can just suppress that behavior and add it yourself.\n");
 	return 0;
 }
-
 
