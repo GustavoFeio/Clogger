@@ -1,7 +1,7 @@
 
 # Clogger
 
-Clogger is a logging library for C with the goal of user customizability.
+Clogger is a logging library for C with flexible user customizability.
 
 # Usage
 Simply paste the `clogger.h` file located in `./src` in your project, include it wherever you need and define the `CLOG_IMPLEMENTATION` macro.

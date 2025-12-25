@@ -1,6 +1,7 @@
 
-#define CLOG_DEBUG_COLOR "\x1b[1;34m"
-#define CLOG_INFO_COLOR "\x1b[1;32m"
+// Note you can ommit the bold formatting by not including it
+#define CLOG_DEBUG_COLOR (CLOG_OUTPUT_BOLD CLOG_OUTPUT_BLUE)
+#define CLOG_INFO_COLOR (CLOG_OUTPUT_BOLD CLOG_OUTPUT_GREEN)
 
 #define CLOG_INFO_OUT stdout
 #define CLOG_DEBUG_OUT stdout

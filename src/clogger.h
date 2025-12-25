@@ -25,20 +25,6 @@
 
 /*
  * This is a header-only logging library for C.
- * To use in your program simply define the `CLOG_IMPLEMENTATION` macro and include the file as so:
- * ```c
- * #define CLOG_IMPLEMENTATION
- * #include "clogger.h"
- *
- * int main(void)
- * {
- *		clog_info("This is a log.");
- *		clog_debug("This is a debug.");
- *		clog_warn("This is a warning.");
- *		clog_error("This is an error.");
- *		return 0;
- * }
- * ```
  *
  * The goal of this library is to be easily customizable[*] by the user through macro definitions.
  * Here are the implemented options so far:
@@ -46,18 +32,19 @@
  * - CLOG_SUPPRESS_TAG:     removes the tag from the log messages (`INFO`, `DEBUG`, etc.).
  * - CLOG_SUPPRESS_LOC:     removes the file location and number from the log messages (`./file/to/path:line`).
  * - CLOG_SUPPRESS_NEWLINE: removes the new line from the end of the log messages.
- * - CLOG_SUPPRESS_NEWLINE: removes the new line from the end of the log messages.
- * - CLOG_*_COLOR: you can define your own preferred colors for each log level using ansi escape codes (https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797); simply #define your desired escape sequence with the corresponding name before including this file. Does nothing if the CLOG_SUPPRESS_COLOR macro is defined.
+ * - CLOG_*_COLOR: you can define your own preferred colors for each log level using CLOG_OUTPUT_* macros or custom ansi escape codes (https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797). Does nothing if the CLOG_SUPPRESS_COLOR macro is defined.
  * - CLOG_*_TAG: you can define your own preferred tag for each log level; simply #define your desired tag with the corresponding name before including this file. Does nothing if the CLOG_SUPPRESS_TAG macro is defined.
  * - CLOG_*_OUT: you can define your own preferred output file for each log level; simply #define your desired output with the corresponding name before including this file.
- * - CLOG_LOG_ORDER: you can define your own order for the timestamp, type, and location of the logs by defining this macro and defining an array with the CLOG_LOC, CLOG_TIME, and CLOG_TAG macros.
+ * - CLOG_LOG_ORDER: you can define your own order for the timestamp, type, and location of the logs by defining this macro and defining an array with the CLOG_TIME, CLOG_TAG, and CLOG_LOC macros.
  * - CLOG_ENABLE_MESSAGE_COLOR: colors the whole log, including the message itself.
  *
- * [*]: This library is still in development; I do not claim to have the best or most extensive customizability, I simply implement what I need as I need it.
+ * See the `examples/`  folder for how to use the library.
+ *
+ * [*]: This library is still in development; I do not claim to have the best or most extensive customizability. I simply implement what I need as I need it.
  */
 
 // TODO:
-// - add default colors (escape sequences) to make it easier to redefine them
+// - allow suppressing bold text independently of color
 // - add support for also suppressing elements for specific levels, instead of all of them at once
 
 #ifndef _CLOG_H_
@@ -93,18 +80,28 @@ inline static void __clog_tag      (FILE *out, Clog_Level level, const char *pat
 #define CLOG_LOG_ORDER {CLOG_TIME, CLOG_LOC, CLOG_TAG}
 #endif // CLOG_LOG_ORDER
 
+#define CLOG_OUTPUT_DEFAULT "\x1b[0m"
+#define CLOG_OUTPUT_BOLD    "\x1b[1m"
+#define CLOG_OUTPUT_RED     "\x1b[31m"
+#define CLOG_OUTPUT_GREEN   "\x1b[32m"
+#define CLOG_OUTPUT_YELLOW  "\x1b[33m"
+#define CLOG_OUTPUT_BLUE    "\x1b[34m"
+#define CLOG_OUTPUT_MAGENTA "\x1b[35m"
+#define CLOG_OUTPUT_CYAN    "\x1b[36m"
+#define CLOG_OUTPUT_WHITE   "\x1b[37m"
+
 #ifndef CLOG_SUPPRESS_COLOR
 #	ifndef CLOG_INFO_COLOR
-#		define CLOG_INFO_COLOR "\x1b[1;37m"
+#		define CLOG_INFO_COLOR (CLOG_OUTPUT_BOLD CLOG_OUTPUT_WHITE)
 #	endif
 #	ifndef CLOG_DEBUG_COLOR
-#		define CLOG_DEBUG_COLOR "\x1b[1;32m"
+#		define CLOG_DEBUG_COLOR (CLOG_OUTPUT_BOLD CLOG_OUTPUT_GREEN)
 #	endif
 #	ifndef CLOG_WARN_COLOR
-#		define CLOG_WARN_COLOR "\x1b[1;33m"
+#		define CLOG_WARN_COLOR (CLOG_OUTPUT_BOLD CLOG_OUTPUT_YELLOW)
 #	endif
 #	ifndef CLOG_ERROR_COLOR
-#		define CLOG_ERROR_COLOR "\x1b[1;31m"
+#		define CLOG_ERROR_COLOR (CLOG_OUTPUT_BOLD CLOG_OUTPUT_RED)
 #	endif
 #endif
 
@@ -217,7 +214,7 @@ inline static void __clog_tag(FILE *out, Clog_Level level, const char *path, int
 }
 
 typedef void (*__clog_func)(FILE *out, Clog_Level level, const char *path, int line);
-static __clog_func __clog_funcs[] = CLOG_LOG_ORDER;
+static const __clog_func __clog_funcs[] = CLOG_LOG_ORDER;
 
 void __clog_generic(Clog_Level level, const char *path, int line, const char *fmt, ...)
 {
@@ -234,7 +231,7 @@ void __clog_generic(Clog_Level level, const char *path, int line, const char *fm
 	}
 
 #if !defined CLOG_SUPPRESS_COLOR && !defined CLOG_ENABLE_MESSAGE_COLOR
-	fprintf(out, "\x1b[0m");
+	fprintf(out, CLOG_OUTPUT_DEFAULT);
 #endif // CLOG_SUPPRESS_COLOR
 
 	va_list va;
@@ -243,7 +240,7 @@ void __clog_generic(Clog_Level level, const char *path, int line, const char *fm
 	va_end(va);
 
 #ifdef CLOG_ENABLE_MESSAGE_COLOR
-	fprintf(out, "\x1b[0m");
+	fprintf(out, CLOG_OUTPUT_DEFAULT);
 #endif // CLOG_ENABLE_MESSAGE_COLOR
 
 #ifndef CLOG_SUPPRESS_NEWLINE
