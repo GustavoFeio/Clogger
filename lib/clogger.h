@@ -61,9 +61,9 @@ typedef enum {
 
 // Not intended to be used directly, but no one's going to stop you
 void __clog_generic(Clog_Level level, const char *path, int line, const char *fmt, ...);
-inline static void __clog_time     (FILE *out, Clog_Level level, const char *path, int line);
-inline static void __clog_location (FILE *out, Clog_Level level, const char *path, int line);
-inline static void __clog_tag      (FILE *out, Clog_Level level, const char *path, int line);
+void __clog_time     (FILE *out, Clog_Level level, const char *path, int line);
+void __clog_location (FILE *out, Clog_Level level, const char *path, int line);
+void __clog_tag      (FILE *out, Clog_Level level, const char *path, int line);
 
 #define clog_info(...)  __clog_generic(CLOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define clog_debug(...) __clog_generic(CLOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
@@ -171,7 +171,7 @@ inline static FILE *__clog_get_output(Clog_Level level)
 	}
 }
 
-inline static void __clog_time(FILE *out, Clog_Level level, const char *path, int line)
+void __clog_time(FILE *out, Clog_Level level, const char *path, int line)
 {
 	UNUSED(level);
 	UNUSED(path);
@@ -187,7 +187,7 @@ inline static void __clog_time(FILE *out, Clog_Level level, const char *path, in
 #endif // CLOG_SUPPRESS_TIME
 }
 
-inline static void __clog_location(FILE *out, Clog_Level level, const char *path, int line)
+void __clog_location(FILE *out, Clog_Level level, const char *path, int line)
 {
 	UNUSED(level);
 #ifndef CLOG_SUPPRESS_LOC
@@ -198,7 +198,7 @@ inline static void __clog_location(FILE *out, Clog_Level level, const char *path
 #endif // CLOG_SUPPRESS_LOC
 }
 
-inline static void __clog_tag(FILE *out, Clog_Level level, const char *path, int line)
+void __clog_tag(FILE *out, Clog_Level level, const char *path, int line)
 {
 	UNUSED(path);
 	UNUSED(line);
