@@ -10,6 +10,7 @@
 
 #define CLOG_ENABLE_MESSAGE_COLOR
 
+#define CLOG_DEF inline static
 #define CLOG_IMPLEMENTATION
 #include "clogger.h"
 

@@ -59,11 +59,17 @@ typedef enum {
 	CLOG_ERROR,
 } Clog_Level;
 
+#ifndef CLOG_DEF
+// Idea stolen from Tsoding's nob.h: https://github.com/Tsoding/nob.h
+// Allows for the user to define their own attributes for clogger functions
+#define CLOG_DEF
+#endif // CLOG_DEF
+
 // Not intended to be used directly, but no one's going to stop you
-void __clog_generic(Clog_Level level, const char *path, int line, const char *fmt, ...);
-void __clog_time     (FILE *out, Clog_Level level, const char *path, int line);
-void __clog_location (FILE *out, Clog_Level level, const char *path, int line);
-void __clog_tag      (FILE *out, Clog_Level level, const char *path, int line);
+CLOG_DEF void __clog_generic(Clog_Level level, const char *path, int line, const char *fmt, ...);
+CLOG_DEF void __clog_time     (FILE *out, Clog_Level level, const char *path, int line);
+CLOG_DEF void __clog_location (FILE *out, Clog_Level level, const char *path, int line);
+CLOG_DEF void __clog_tag      (FILE *out, Clog_Level level, const char *path, int line);
 
 #define clog_info(...)  __clog_generic(CLOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define clog_debug(...) __clog_generic(CLOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
@@ -171,7 +177,7 @@ inline static FILE *__clog_get_output(Clog_Level level)
 	}
 }
 
-void __clog_time(FILE *out, Clog_Level level, const char *path, int line)
+CLOG_DEF void __clog_time(FILE *out, Clog_Level level, const char *path, int line)
 {
 	UNUSED(level);
 	UNUSED(path);
@@ -187,7 +193,7 @@ void __clog_time(FILE *out, Clog_Level level, const char *path, int line)
 #endif // CLOG_SUPPRESS_TIME
 }
 
-void __clog_location(FILE *out, Clog_Level level, const char *path, int line)
+CLOG_DEF void __clog_location(FILE *out, Clog_Level level, const char *path, int line)
 {
 	UNUSED(level);
 #ifndef CLOG_SUPPRESS_LOC
@@ -198,7 +204,7 @@ void __clog_location(FILE *out, Clog_Level level, const char *path, int line)
 #endif // CLOG_SUPPRESS_LOC
 }
 
-void __clog_tag(FILE *out, Clog_Level level, const char *path, int line)
+CLOG_DEF void __clog_tag(FILE *out, Clog_Level level, const char *path, int line)
 {
 	UNUSED(path);
 	UNUSED(line);
@@ -216,7 +222,7 @@ void __clog_tag(FILE *out, Clog_Level level, const char *path, int line)
 typedef void (*__clog_func)(FILE *out, Clog_Level level, const char *path, int line);
 static const __clog_func __clog_funcs[] = CLOG_LOG_ORDER;
 
-void __clog_generic(Clog_Level level, const char *path, int line, const char *fmt, ...)
+CLOG_DEF void __clog_generic(Clog_Level level, const char *path, int line, const char *fmt, ...)
 {
 	FILE *out = __clog_get_output(level);
 
