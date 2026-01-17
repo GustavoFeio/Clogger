@@ -44,6 +44,7 @@
  */
 
 // TODO:
+// - toggling suppression of independent levels *at runtime*
 // - allow suppressing bold text independently of color
 // - add support for also suppressing elements for specific levels, instead of all of them at once
 
@@ -139,6 +140,8 @@ CLOG_DEF void __clog_tag      (FILE *out, Clog_Level level, const char *path, in
 #	define CLOG_ERROR_OUT stderr
 #endif
 
+
+
 #ifdef CLOG_IMPLEMENTATION
 
 #include <assert.h>
@@ -146,7 +149,7 @@ CLOG_DEF void __clog_tag      (FILE *out, Clog_Level level, const char *path, in
 #include <stdbool.h>
 #include <time.h>
 
-#define UNUSED(x) ((void)(x))
+#define CLOG_UNUSED(x) ((void)(x))
 
 #ifndef CLOG_SUPPRESS_COLOR
 static const char *clog_colors[] = {
@@ -179,9 +182,9 @@ inline static FILE *__clog_get_output(Clog_Level level)
 
 CLOG_DEF void __clog_time(FILE *out, Clog_Level level, const char *path, int line)
 {
-	UNUSED(level);
-	UNUSED(path);
-	UNUSED(line);
+	CLOG_UNUSED(level);
+	CLOG_UNUSED(path);
+	CLOG_UNUSED(line);
 #ifndef CLOG_SUPPRESS_TIME
 	time_t tloc;
 	time(&tloc);
@@ -189,33 +192,33 @@ CLOG_DEF void __clog_time(FILE *out, Clog_Level level, const char *path, int lin
 	timeinfo = localtime(&tloc); // not thread safe
 	fprintf(out, "[%02d:%02d:%02d] ", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 #else
-	UNUSED(out);
+	CLOG_UNUSED(out);
 #endif // CLOG_SUPPRESS_TIME
 }
 
 CLOG_DEF void __clog_location(FILE *out, Clog_Level level, const char *path, int line)
 {
-	UNUSED(level);
+	CLOG_UNUSED(level);
 #ifndef CLOG_SUPPRESS_LOC
 	fprintf(out, "%s:%d: ", path, line);
 #else
-	UNUSED(path);
-	UNUSED(line);
+	CLOG_UNUSED(path);
+	CLOG_UNUSED(line);
 #endif // CLOG_SUPPRESS_LOC
 }
 
 CLOG_DEF void __clog_tag(FILE *out, Clog_Level level, const char *path, int line)
 {
-	UNUSED(path);
-	UNUSED(line);
+	CLOG_UNUSED(path);
+	CLOG_UNUSED(line);
 #ifndef CLOG_SUPPRESS_TAG
 	// TODO: consider padding the tags
 		// hardcoded 19 means that if the tags change this may not be formatted correctly
 		// fprintf(out, "%-19s", type);
 	fprintf(out, "%s: ", clog_tags[level]);
 #else
-	UNUSED(out);
-	UNUSED(level);
+	CLOG_UNUSED(out);
+	CLOG_UNUSED(level);
 #endif // CLOG_SUPPRESS_TAG
 }
 
